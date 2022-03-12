@@ -8,17 +8,18 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=vala
-PKG_VERSION:=0.46.5
-PKG_RELEASE:=1
+PKG_VERSION:=0.54.2
+PKG_RELEASE:=$(AUTORELEASE)
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.xz
-PKG_SOURCE_URL:=@GNOME/vala/0.46
-PKG_HASH:=1a7847d2599d902c805a58b95b72b69e64c0223c2f6220163998a7ab4b42db1d
+PKG_SOURCE_URL:=@GNOME/vala/0.54
+PKG_HASH:=884de745317d4d56e4e8cede993dc8f04d50cfca36cf60d2f2f278c30c2b1311
 
 PKG_MAINTAINER:=
 PKG_LICENSE:=LGPL-2.1-or-later
 PKG_LICENSE_FILES:=COPYING
 
+PKG_HOST_ONLY:=1
 HOST_BUILD_DEPENDS:=glib2/host
 HOST_BUILD_PARALLEL:=1
 
@@ -30,6 +31,7 @@ define Package/vala
   CATEGORY:=Languages
   TITLE:=C-sharp like language for the GObject system
   URL:=https://wiki.gnome.org/Projects/Vala
+  BUILDONLY:=1
 endef
 
 define Package/vala/description
@@ -38,6 +40,7 @@ define Package/vala/description
 endef
 
 HOST_CONFIGURE_ARGS += \
+	--disable-shared \
 	--disable-coverage \
 	--disable-debug \
 	--disable-valadoc \

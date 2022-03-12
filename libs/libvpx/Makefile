@@ -9,22 +9,19 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=libvpx
-PKG_VERSION:=1.8.1
-PKG_RELEASE:=1
+PKG_VERSION:=1.11.0
+PKG_RELEASE:=$(AUTORELEASE)
 
-PKG_REV:=v$(PKG_VERSION)
-PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION)-$(PKG_REV).tar.gz
-PKG_MIRROR_HASH:=6703842a870727b621a82efe5b2ff6f5553d41f7b0905dd4fde1f8bdf062d6ea
-PKG_SOURCE_URL:=https://chromium.googlesource.com/webm/libvpx
 PKG_SOURCE_PROTO:=git
-PKG_SOURCE_VERSION:=$(PKG_REV)
-PKG_SOURCE_SUBDIR:=$(PKG_NAME)-$(PKG_VERSION)
-PKG_CPE_ID:=cpe:/a:john_koleszar:libvpx
+PKG_SOURCE_URL:=https://chromium.googlesource.com/webm/libvpx
+PKG_MIRROR_HASH:=495e1f6d389d1c3b613a97927df7750aa499c649fd11eec6e1c9dcf5f403f134
+PKG_SOURCE_VERSION:=v$(PKG_VERSION)
 
 PKG_MAINTAINER:=Luiz Angelo Daros de Luca <luizluca@gmail.com>
-
 PKG_LICENSE:=BSD-3-Clause
 PKG_LICENSE_FILES:=LICENSE
+PKG_CPE_ID:=cpe:/a:john_koleszar:libvpx
+PKG_BUILD_PARALLEL:=1
 
 PKG_ABI_VERSION:=$(subst $(space),.,$(wordlist 1, 2, $(subst .,$(space),$(PKG_VERSION))))
 
@@ -36,7 +33,7 @@ define Package/libvpx
   SECTION:=libs
   CATEGORY:=Libraries
   TITLE:=libvpx
-  URL:=http://www.webmproject.org/
+  URL:=https://www.webmproject.org/
   DEPENDS:=+libpthread
   ABI_VERSION:=$(PKG_ABI_VERSION)
 endef

@@ -6,7 +6,7 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=python-oauthlib
-PKG_VERSION:=3.1.0
+PKG_VERSION:=3.1.1
 PKG_RELEASE:=1
 
 PKG_MAINTAINER:=Eneas U de Queiroz <cotequeiroz@gmail.com>
@@ -14,47 +14,25 @@ PKG_LICENSE:=BSD-3-Clause
 PKG_LICENSE_FILES:=LICENSE
 
 PYPI_NAME:=oauthlib
-PKG_HASH:=bee41cc35fcca6e988463cacc3bcb8a96224f470ca547e697b604cc697b2f889
+PKG_HASH:=8f0215fcc533dd8dd1bee6f4c412d4f0cd7297307d43ac61666389e3bc3198a3
 
 include ../pypi.mk
 include $(INCLUDE_DIR)/package.mk
-include ../python-package.mk
 include ../python3-package.mk
 
-define Package/python-oauthlib/Default
+define Package/python3-oauthlib
   SUBMENU:=Python
   SECTION:=lang
   CATEGORY:=Languages
   TITLE:=OAuth request-signing logic for Python
   URL:=https://github.com/oauthlib/oauthlib
-endef
-
-define Package/python-oauthlib
-  $(call Package/python-oauthlib/Default)
-  DEPENDS:=+PACKAGE_python-oauthlib:python-light
-  VARIANT:=python
-endef
-
-define Package/python3-oauthlib
-  $(call Package/python-oauthlib/Default)
-  DEPENDS:=+PACKAGE_python3-oauthlib:python3-light
-  VARIANT:=python3
-endef
-
-define Package/python-oauthlib/description
-  A generic, spec-compliant, thorough implementation of the OAuth request-signing
-  logic for Python
+  DEPENDS:=+python3-light
 endef
 
 define Package/python3-oauthlib/description
-$(call Package/python-oauthlib/description)
-.
-(Variant for Python3)
+  A generic, spec-compliant, thorough implementation of the OAuth request-signing
+  logic for Python
 endef
-
-$(eval $(call PyPackage,python-oauthlib))
-$(eval $(call BuildPackage,python-oauthlib))
-$(eval $(call BuildPackage,python-oauthlib-src))
 
 $(eval $(call Py3Package,python3-oauthlib))
 $(eval $(call BuildPackage,python3-oauthlib))

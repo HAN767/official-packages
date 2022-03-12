@@ -8,18 +8,19 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=linuxptp
-PKG_VERSION:=2.0
+PKG_VERSION:=3.1.1
 PKG_RELEASE:=2
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tgz
 PKG_SOURCE_URL:=@SF/$(PKG_NAME)/v$(PKG_VERSION)
-PKG_HASH:=0a24d9401e87d4af023d201e234d91127d82c350daad93432106284aa9459c7d
+PKG_HASH:=94d6855f9b7f2d8e9b0ca6d384e3fae6226ce6fc012dbad02608bdef3be1c0d9
 
-PKG_MAINTAINER:=Wojciech Dubowik <Wojciech.Dubowik@neratec.com>
+PKG_MAINTAINER:=Wojciech Dubowik <Wojciech.Dubowik@westermo.com>
 PKG_LICENSE:=GPL-2.0
 PKG_LICENSE_FILES:=COPYING
 
 include $(INCLUDE_DIR)/package.mk
+include $(INCLUDE_DIR)/kernel.mk
 
 define Package/linuxptp
   SECTION:=net
@@ -39,7 +40,8 @@ endef
 EXTRA_CFLAGS += -DHAVE_CLOCK_ADJTIME -DHAVE_POSIX_SPAWN -DHAVE_ONESTEP_SYNC
 
 MAKE_VARS += \
-	EXTRA_CFLAGS="$(TARGET_CFLAGS) $(TARGET_CPPFLAGS) $(EXTRA_CFLAGS)"
+	EXTRA_CFLAGS="$(TARGET_CFLAGS) $(TARGET_CPPFLAGS) $(EXTRA_CFLAGS)" \
+	KBUILD_OUTPUT="$(LINUX_DIR)"
 
 define Package/linuxptp/install
 	$(INSTALL_DIR) $(1)/usr/sbin

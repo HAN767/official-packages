@@ -8,12 +8,12 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=openfortivpn
-PKG_VERSION:=1.10.0
+PKG_VERSION:=1.17.1
 PKG_RELEASE:=1
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
 PKG_SOURCE_URL:=https://codeload.github.com/adrienverge/openfortivpn/tar.gz/v$(PKG_VERSION)?
-PKG_HASH:=d6ea0c84c0cf811530073fa19865334bb42ab10a780157fe95c4efb3476ad58d
+PKG_HASH:=c674c59cf3201a55d56cb503053982752fb641b13a85ea406b8a7e7df301e30f
 
 PKG_MAINTAINER:=Lucian Cristian <lucian.cristian@gmail.com>
 PKG_LICENSE:=GPL-3.0-or-later OpenSSL
@@ -44,23 +44,25 @@ endef
 CONFIGURE_ARGS += \
 	--enable-proc \
 	--with-rt_dst="yes" \
+	--disable-resolvconf \
+	--with-resolvconf=DISABLED \
 	--with-pppd="/usr/sbin/pppd"
 
 TARGET_LDFLAGS += -Wl,--gc-sections,--as-needed
 
-define Package/openfortivpn/conffiles
-/etc/config/openfortivpn
-endef
-
 define Package/openfortivpn/install
 	$(INSTALL_DIR) \
 	  $(1)/usr/sbin \
-	  $(1)/etc/config \
-	  $(1)/etc/init.d
+          $(1)/lib/netifd/proto \
+	  $(1)/etc/hotplug.d/iface \
+	  $(1)/etc/openfortivpn \
+	  $(1)/lib/upgrade/keep.d
 
 	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/usr/bin/openfortivpn $(1)/usr/sbin/
-	$(INSTALL_DATA) ./files/openfortivpn.config $(1)/etc/config/openfortivpn
-	$(INSTALL_BIN) ./files/openfortivpn.init $(1)/etc/init.d/openfortivpn
+	$(INSTALL_BIN) ./files/openfortivpn-wrapper $(1)/usr/sbin/
+	$(INSTALL_BIN) ./files/openfortivpn.sh $(1)/lib/netifd/proto/
+	$(INSTALL_BIN) ./files/openfortivpn-ppp-up $(1)/lib/netifd/openfortivpn-ppp-up
+	$(INSTALL_DATA) ./files/openfortivpn.upgrade $(1)/lib/upgrade/keep.d/openfortivpn
 endef
 
 $(eval $(call BuildPackage,openfortivpn))

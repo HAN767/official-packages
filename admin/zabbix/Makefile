@@ -8,12 +8,12 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=zabbix
-PKG_VERSION:=4.0.11
-PKG_RELEASE:=2
+PKG_VERSION:=5.0.18
+PKG_RELEASE:=1
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
-PKG_SOURCE_URL:=@SF/zabbix
-PKG_HASH:=b0af25c31c622d14cb7780db5941d76579b9f9a6ee449613d847b0b505628409
+PKG_SOURCE_URL:=https://cdn.zabbix.com/zabbix/sources/stable/5.0/
+PKG_HASH:=7d15c4d683801edc2bdcda3fd94afdf6a7142a1a92aa71f4a9220af8e39d9e0e
 
 PKG_MAINTAINER:=Etienne CHAMPETIER <champetier.etienne@gmail.com>
 PKG_LICENSE:=GPL-2.0
@@ -21,8 +21,7 @@ PKG_LICENSE_FILES:=COPYING
 PKG_CPE_ID:=cpe:/a:zabbix:zabbix
 
 PKG_INSTALL:=1
-
-PKG_FIXUP:=autoreconf
+PKG_BUILD_PARALLEL:=1
 
 PKG_CONFIG_DEPENDS:= \
   CONFIG_ZABBIX_GNUTLS \
@@ -120,15 +119,15 @@ endef
 define Package/zabbix-server-frontend
   $(call Package/zabbix/Default)
   TITLE+= server-frontend
-  DEPENDS += +php7 +php7-cgi +ZABBIX_POSTGRESQL:php7-mod-pgsql +ZABBIX_MYSQL:php7-mod-mysqli \
-  +php7-mod-gd +php7-mod-bcmath +php7-mod-ctype +php7-mod-xmlreader +php7-mod-xmlwriter \
-  +php7-mod-session +php7-mod-sockets +php7-mod-mbstring +php7-mod-gettext
+  DEPENDS += +php8 +php8-cgi +ZABBIX_POSTGRESQL:php8-mod-pgsql +ZABBIX_MYSQL:php8-mod-mysqli \
+  +php8-mod-gd +php8-mod-bcmath +php8-mod-ctype +php8-mod-xmlreader +php8-mod-xmlwriter \
+  +php8-mod-session +php8-mod-sockets +php8-mod-mbstring +php8-mod-gettext
 endef
 
 define Package/zabbix-proxy
   $(call Package/zabbix/Default)
   TITLE+= proxy
-  DEPENDS += +ZABBIX_POSTGRESQL:libpq +ZABBIX_MYSQL:libmariadbclient
+  DEPENDS += +ZABBIX_POSTGRESQL:libpq +ZABBIX_MYSQL:libmariadbclient +libevent2
 endef
 
 define Package/zabbix-extra-mac80211/description
@@ -162,6 +161,9 @@ CONFIGURE_ARGS+= \
 	--with-zlib=$(STAGING_DIR)/usr/include \
 	$(if $(CONFIG_ZABBIX_GNUTLS),--with-gnutls="$(STAGING_DIR)/usr") \
 	$(if $(CONFIG_ZABBIX_OPENSSL),--with-openssl="$(STAGING_DIR)/usr")
+
+CONFIGURE_VARS += \
+	ac_cv_header_sys_sysinfo_h=no
 
 MAKE_FLAGS += ARCH="linux"
 
@@ -264,7 +266,7 @@ endef
 define Package/zabbix-extra-network/postinst
 #!/bin/sh
 if [ -z "$${IPKG_INSTROOT}" ]; then
-	killall -HUP ubusd
+	killall -s HUP ubusd
 fi
 endef
 
@@ -277,7 +279,7 @@ endef
 define Package/zabbix-extra-wifi/postinst
 #!/bin/sh
 if [ -z "$${IPKG_INSTROOT}" ]; then
-	killall -HUP ubusd
+	killall -s HUP ubusd
 fi
 endef
 
@@ -296,7 +298,7 @@ endef
 
 define Package/zabbix-server-frontend/install
 	$(INSTALL_DIR) $(1)/www/zabbix
-	$(CP) $(PKG_BUILD_DIR)/frontends/php/* $(1)/www/zabbix
+	$(CP) $(PKG_BUILD_DIR)/ui/* $(1)/www/zabbix
 endef
 
 define Package/zabbix-proxy/install

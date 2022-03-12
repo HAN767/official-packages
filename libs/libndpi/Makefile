@@ -8,16 +8,16 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=libndpi
-PKG_VERSION:=2.8
+PKG_VERSION:=4.0
 PKG_RELEASE:=1
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
 PKG_SOURCE_URL:=https://codeload.github.com/ntop/nDPI/tar.gz/$(PKG_VERSION)?
-PKG_HASH:=f98def4d0e43818317b20e2887ce500b2d6a5a9c8ddb28cf57ae51caae0f33cc
+PKG_HASH:=99e0aba6396fd633c3840f30e4942f6591a08066d037f560b65ba64e7310f4d6
 PKG_BUILD_DIR:=$(BUILD_DIR)/nDPI-$(PKG_VERSION)
 
-PKG_MAINTAINER:=Banglang Huang <banglang.huang@foxmail.com>
-PKG_LICENSE:=LGPLv3
+PKG_MAINTAINER:=Banglang Huang <banglang.huang@foxmail.com>, Toni Uhlig <matzeton@googlemail.com>
+PKG_LICENSE:=LGPL-3.0-or-later
 PKG_LICENSE_FILES:=COPYING
 
 PKG_FIXUP:=autoreconf
@@ -25,15 +25,22 @@ PKG_REMOVE_FILES:=autogen.sh
 PKG_BUILD_DEPENDS:=libpcap
 PKG_BUILD_PARALLEL:=1
 
-include $(INCLUDE_DIR)/uclibc++.mk
 include $(INCLUDE_DIR)/package.mk
+
+ifeq ($(CONFIG_LIBNDPI_GCRYPT),)
+CONFIGURE_ARGS += --disable-gcrypt
+endif
+
+ifneq ($(CONFIG_LIBNDPI_MAXMINDDB),)
+CONFIGURE_ARGS += --with-maxminddb
+endif
 
 define Package/libndpi
   SECTION:=libs
   CATEGORY:=Libraries
   TITLE:=Library for deep-packet inspection
   URL:=https://github.com/ntop/nDPI
-  DEPENDS:=$(CXX_DEPENDS) +libpcap +libjson-c
+  DEPENDS:=+LIBNDPI_GCRYPT:libgcrypt +LIBNDPI_MAXMINDDB:libmaxminddb +libpcap +libjson-c
 endef
 
 define Package/libndpi/description
@@ -41,14 +48,34 @@ define Package/libndpi/description
   Based on OpenDPI it includes ntop extensions.
 endef
 
+define Package/libndpi/config
+config LIBNDPI_GCRYPT
+	bool "GCrypt support"
+	depends on PACKAGE_libndpi
+	default n
+	help
+	  This option enables QUIC client hello decryption.
+	  Disabled by default.
+
+config LIBNDPI_MAXMINDDB
+	bool "Maxmind GeoIP support"
+	depends on PACKAGE_libndpi
+	default n
+	help
+	  This options enables geographical information processing
+	  and serialization based on IP addresses.
+	  Disabled by default.
+endef
+
 define Build/Prepare
 	$(PKG_UNPACK)
 	$(Build/Patch)
 	mv $(PKG_BUILD_DIR)/configure.seed $(PKG_BUILD_DIR)/configure.ac
-	$(SED) "s/@NDPI_MAJOR@/2/g" \
-		-e "s/@NDPI_MINOR@/8/g" \
+	$(SED) "s/@NDPI_MAJOR@/3/g" \
+		-e "s/@NDPI_MINOR@/4/g" \
 		-e "s/@NDPI_PATCH@/0/g" \
-		-e "s/@NDPI_VERSION_SHORT@/2.8.0/g" \
+		-e "s/@NDPI_VERSION_SHORT@/3.4.0/g" \
+		-e "s/@FUZZY@/dnl> /g" \
 		$(PKG_BUILD_DIR)/configure.ac
 endef
 

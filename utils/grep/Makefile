@@ -8,20 +8,22 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=grep
-PKG_VERSION:=3.3
-PKG_RELEASE:=1
+PKG_VERSION:=3.7
+PKG_RELEASE:=2
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.xz
 PKG_SOURCE_URL:=@GNU/grep
-PKG_HASH:=b960541c499619efd6afe1fa795402e4733c8e11ebf9fafccc0bb4bccdc5b514
+PKG_HASH:=5c10da312460aec721984d5d83246d24520ec438dd48d7ab5a05dbc0d6d6823c
 
 PKG_MAINTAINER:=Julen Landa Alustiza <julen@zokormazo.info>
-PKG_LICENSE:=GPL-3.0
+PKG_LICENSE:=GPL-3.0-or-later
 PKG_LICENSE_FILES:=COPYING
 PKG_CPE_ID:=cpe:/a:gnu:grep
 
 PKG_INSTALL:=1
 PKG_BUILD_PARALLEL:=1
+
+MAKE_FLAGS += SHELL="/bin/sh"
 
 include $(INCLUDE_DIR)/package.mk
 
@@ -31,6 +33,10 @@ define Package/grep
   TITLE:=grep search utility - full version
   DEPENDS:=+libpcre
   URL:=https://www.gnu.org/software/grep/
+  ALTERNATIVES:=\
+    300:/bin/egrep:/usr/libexec/egrep-gnu \
+    300:/bin/fgrep:/usr/libexec/fgrep-gnu \
+    300:/bin/grep:/usr/libexec/grep-gnu
 endef
 
 define Package/grep/description
@@ -40,20 +46,10 @@ prints the matching lines.
 endef
 
 define Package/grep/install
-	$(INSTALL_DIR) $(1)/usr/bin
-	$(INSTALL_BIN) $(PKG_BUILD_DIR)/src/grep $(1)/usr/bin/grep
-endef
-
-define Package/grep/postinst
-#!/bin/sh
-[ -L "$${IPKG_INSTROOT}/bin/grep" ] && rm -f "$${IPKG_INSTROOT}/bin/grep"
-exit 0
-endef
-
-define Package/grep/prerm
-$${IPKG_INSTROOT}/bin/busybox grep -h 2>&1 | grep -q BusyBox && \
-ln -sf busybox $${IPKG_INSTROOT}/bin/grep
-exit 0
+	$(INSTALL_DIR) $(1)/usr/libexec
+	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/usr/bin/egrep $(1)/usr/libexec/egrep-gnu
+	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/usr/bin/fgrep $(1)/usr/libexec/fgrep-gnu
+	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/usr/bin/grep $(1)/usr/libexec/grep-gnu
 endef
 
 $(eval $(call BuildPackage,grep))

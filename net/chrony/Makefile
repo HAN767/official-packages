@@ -8,12 +8,12 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=chrony
-PKG_VERSION:=3.5
-PKG_RELEASE:=1
+PKG_VERSION:=4.2
+PKG_RELEASE:=2
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
 PKG_SOURCE_URL:=https://download.tuxfamily.org/chrony/
-PKG_HASH:=4e02795b1260a4ec51e6ace84149036305cc9fc340e65edb9f8452aa611339b5
+PKG_HASH:=273f9fd15c328ed6f3a5f6ba6baec35a421a34a73bb725605329b1712048db9a
 
 PKG_MAINTAINER:=Miroslav Lichvar <mlichvar0@gmail.com>
 PKG_LICENSE:=GPL-2.0
@@ -24,7 +24,7 @@ PKG_BUILD_DEPENDS:=pps-tools
 
 include $(INCLUDE_DIR)/package.mk
 
-define Package/chrony
+define Package/chrony/Default
   SUBMENU:=Time Synchronization
   SECTION:=net
   CATEGORY:=Network
@@ -32,6 +32,21 @@ define Package/chrony
   USERID:=chrony=323:chrony=323
   TITLE:=A versatile NTP client and server
   URL:=http://chrony.tuxfamily.org/
+  PROVIDES:=nts
+endef
+
+define Package/chrony
+$(call Package/chrony/Default)
+  TITLE+= (without NTS)
+  VARIANT:=normal
+  CONFLICTS:=chrony-nts
+endef
+
+define Package/chrony-nts
+$(call Package/chrony/Default)
+  TITLE+= (with NTS)
+  DEPENDS+= +libgnutls +ca-bundle
+  VARIANT:=with-nts
 endef
 
 define Package/chrony/description
@@ -40,10 +55,14 @@ define Package/chrony/description
 	reference clocks, and manual input using wristwatch and keyboard.
 endef
 
+Package/chrony-nts/description = $(Package/chrony/description)
+
 define Package/chrony/conffiles
 /etc/chrony/chrony.conf
 /etc/config/chrony
 endef
+
+Package/chrony-nts/conffiles = $(Package/chrony/conffiles)
 
 CONFIGURE_ARGS+= \
 	--host-machine=$(shell echo $(GNU_TARGET_NAME) | sed -e 's/-.*//') \
@@ -52,6 +71,7 @@ CONFIGURE_ARGS+= \
 	--sysconfdir=/etc/chrony \
 	--prefix=/usr \
 	--chronyrundir=/var/run/chrony \
+	$(if $(findstring normal,$(BUILD_VARIANT)),--disable-nts,--enable,nts) \
 	--disable-readline \
 	--disable-rtc \
 	--disable-sechash \
@@ -74,4 +94,7 @@ define Package/chrony/install
 	$(INSTALL_CONF) ./files/chrony.conf $(1)/etc/chrony/chrony.conf
 endef
 
+Package/chrony-nts/install= $(Package/chrony/install)
+
 $(eval $(call BuildPackage,chrony))
+$(eval $(call BuildPackage,chrony-nts))

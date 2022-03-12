@@ -5,11 +5,11 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=Jinja2
-PKG_VERSION:=2.10.1
-PKG_RELEASE:=1
+PKG_VERSION:=3.0.3
+PKG_RELEASE:=$(AUTORELEASE)
 
 PYPI_NAME:=$(PKG_NAME)
-PKG_HASH:=065c4f02ebe7f7cf559e49ee5a95fb800a9e4528727aec6f24402a5374c65013
+PKG_HASH:=611bb273cd68f3b993fabdc4064fc858c5b47a973cb5aa7999ec1ba405c87cd7
 
 PKG_MAINTAINER:=Daniel Golle <daniel@makrotopia.org>
 PKG_LICENSE:=BSD-3-Clause
@@ -25,9 +25,8 @@ define Package/python3-jinja2
   CATEGORY:=Languages
   SUBMENU:=Python
   TITLE:=Jinja2
-  URL:=http://jinja.pocoo.org/
+  URL:=https://palletsprojects.com/p/jinja/
   DEPENDS:=+python3-light +python3-markupsafe
-  VARIANT:=python3
 endef
 
 define Package/python3-jinja2/description

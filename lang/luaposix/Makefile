@@ -6,12 +6,12 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=luaposix
-PKG_VERSION:=34.1.1
-PKG_RELEASE:=1
+PKG_VERSION:=35.1
+PKG_RELEASE:=$(AUTORELEASE)
 
 PKG_SOURCE_URL:=https://codeload.github.com/$(PKG_NAME)/$(PKG_NAME)/tar.gz/v$(PKG_VERSION)?
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
-PKG_HASH:=7948f4ac8b953172e928753632e37ad97cc3014df74b524fe7839f71216a7e90
+PKG_HASH:=1b5c48d2abd59de0738d1fc1e6204e44979ad2a1a26e8e22a2d6215dd502c797
 PKG_MAINTAINER:=Maxim Storchak <m.storchak@gmail.com>
 PKG_LICENSE:=MIT
 PKG_LICENSE_FILES:=COPYING
@@ -33,6 +33,8 @@ define Package/luaposix/description
   luaposix is a general POSIX library for Lua providing access
   to various low level libc functions.
 endef
+
+TARGET_PATH_PKG:=$(CURDIR)/scripts:$(TARGET_PATH_PKG)
 
 TARGET_CFLAGS += \
 	-I$(STAGING_DIR)/usr/include

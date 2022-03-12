@@ -1,8 +1,8 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=syslog-ng
-PKG_VERSION:=3.24.1
-PKG_RELEASE:=1
+PKG_VERSION:=3.36.1
+PKG_RELEASE:=$(AUTORELEASE)
 
 PKG_MAINTAINER:=Josef Schlehofer <josef.schlehofer@nic.cz>
 PKG_LICENSE:=LGPL-2.1-or-later GPL-2.0-or-later
@@ -10,17 +10,23 @@ PKG_LICENSE_FILES:=COPYING LGPL.txt GPL.txt
 PKG_CPE_ID:=cpe:/a:balabit:syslog-ng
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
-PKG_SOURCE_URL:=https://github.com/balabit/syslog-ng/releases/download/$(PKG_NAME)-$(PKG_VERSION)/
-PKG_HASH:=d4d0a0357b452be96b69d6f741129275530d8f0451e35adc408ad5635059fa3d
+PKG_SOURCE_URL:=https://github.com/syslog-ng/syslog-ng/releases/download/$(PKG_NAME)-$(PKG_VERSION)/
+PKG_HASH:=90a25c9767fe749db50f118ddfc92ec71399763d2ecd5ad4f11ff5eea049e60b
 
 PKG_BUILD_PARALLEL:=1
 PKG_INSTALL:=1
+
+PKG_BUILD_DEPENDS:= \
+	HOST_OS_MACOS:fakeuname/host \
 
 PKG_CONFIG_DEPENDS:= \
 	CONFIG_IPV6 \
 
 include $(INCLUDE_DIR)/package.mk
 include $(INCLUDE_DIR)/nls.mk
+ifeq ($(CONFIG_HOST_OS_MACOS),y)
+    include ../../utils/fakeuname/fakeuname.mk
+endif
 
 define Package/syslog-ng
   SECTION:=admin
@@ -48,7 +54,7 @@ define Build/Configure
 endef
 
 CONFIGURE_ARGS +=  \
-	--disable-snmp-dest \
+	--disable-afsnmp \
 	$(call autoconf_bool,CONFIG_IPV6,ipv6) \
 	--disable-tcp-wrapper \
 	--disable-spoof-source \
@@ -58,6 +64,7 @@ CONFIGURE_ARGS +=  \
 	--enable-json=yes \
 	--enable-http=yes \
 	--disable-smtp \
+	--disable-mqtt \
 	--disable-redis \
 	--disable-dependency-tracking \
 	--disable-python \
@@ -68,6 +75,7 @@ CONFIGURE_ARGS +=  \
 	--with-mongoc=no
 
 CONFIGURE_VARS += \
+	$(if $(CONFIG_HOST_OS_MACOS),PATH=$(FAKEUNAME_PATH):$(PATH)) \
 	LIBDBI_CFLAGS="-I$(STAGING_DIR)/usr/include"
 
 define Package/syslog-ng/install
@@ -85,7 +93,11 @@ define Package/syslog-ng/install
 	$(INSTALL_DATA) ./files/syslog-ng.conf $(1)/etc
 	touch $(1)/etc/syslog-ng.d/.keep
 
-	$(INSTALL_BIN) ./files/logread $(1)/usr/sbin
+	$(INSTALL_DIR) $(1)/sbin
+	$(INSTALL_BIN) ./files/logread $(1)/sbin
+
+	$(INSTALL_DIR) $(1)/usr/share/syslog-ng/include/
+	$(CP) -r ./files/scl $(1)/usr/share/syslog-ng/include/
 endef
 
 define Package/syslog-ng/postinst

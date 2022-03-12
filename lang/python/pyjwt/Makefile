@@ -6,54 +6,32 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=pyjwt
-PKG_VERSION:=1.7.1
+PKG_VERSION:=2.2.0
 PKG_RELEASE:=1
 
-PKG_MAINTAINER:=Eneas U de Queiroz <cote2004-github@yahoo.com>
+PKG_MAINTAINER:=Eneas U de Queiroz <cotequeiroz@gmail.com>
 PKG_LICENSE:=MIT
 PKG_LICENSE_FILES:=LICENSE
 
 PYPI_NAME:=PyJWT
-PKG_HASH:=8d59a976fb773f3e6a39c85636357c4f0e242707394cadadd9814f5cbaa20e96
+PKG_HASH:=a0b9a3b4e5ca5517cac9f1a6e9cd30bf1aa80be74fcdf4e28eded582ecfcfbae
 
 include ../pypi.mk
 include $(INCLUDE_DIR)/package.mk
-include ../python-package.mk
 include ../python3-package.mk
 
-define Package/python-pyjwt/Default
+define Package/python3-pyjwt
   SUBMENU:=Python
   SECTION:=lang
   CATEGORY:=Languages
   TITLE:=JSON Web Token implementation in Python
   URL:=http://github.com/jpadilla/pyjwt
-endef
-
-define Package/python-pyjwt
-  $(call Package/python-pyjwt/Default)
-  DEPENDS:=+PACKAGE_python-pyjwt:python
-  VARIANT:=python
-endef
-
-define Package/python3-pyjwt
-  $(call Package/python-pyjwt/Default)
-  DEPENDS:=+PACKAGE_python3-pyjwt:python3
-  VARIANT:=python3
-endef
-
-define Package/python-pyjwt/description
-  A Python implementation of RFC 7519.
+  DEPENDS:=+python3
 endef
 
 define Package/python3-pyjwt/description
-$(call Package/python-pyjwt/description)
-.
-(Variant for Python3)
+  A Python implementation of RFC 7519.
 endef
-
-$(eval $(call PyPackage,python-pyjwt))
-$(eval $(call BuildPackage,python-pyjwt))
-$(eval $(call BuildPackage,python-pyjwt-src))
 
 $(eval $(call Py3Package,python3-pyjwt))
 $(eval $(call BuildPackage,python3-pyjwt))

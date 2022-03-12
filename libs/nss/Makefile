@@ -7,14 +7,14 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=nss
-PKG_VERSION:=3.48
-PKG_RELEASE:=1
+PKG_VERSION:=3.76
+PKG_RELEASE:=$(AUTORELEASE)
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
 PKG_SOURCE_URL:= \
     https://download.cdn.mozilla.net/pub/security/$(PKG_NAME)/releases/NSS_$(subst .,_,$(PKG_VERSION))_RTM/src \
     https://archive.mozilla.org/pub/security/$(PKG_NAME)/releases/NSS_$(subst .,_,$(PKG_VERSION))_RTM/src
-PKG_HASH:=3f9c822a86a4e3e1bfe63e2ed0f922d8b7c2e0b7cafe36774b1c627970d0f8ac
+PKG_HASH:=1b8e0310add364d2ade40620cde0f1c37f4f00a6999b2d3e7ea8dacda4aa1630
 
 PKG_MAINTAINER:=Lucian Cristian <lucian.cristian@gmail.com>
 PKG_LICENCE:=MPL-2.0
@@ -62,37 +62,43 @@ ifeq ($(CONFIG_CPU_TYPE),"xscale")
 TARGET_CFLAGS+= -mfloat-abi=softfp
 endif
 
-TARGET_LDFLAGS += -Wl,--gc-sections,--as-needed
+ifneq ($(findstring arm,$(CONFIG_ARCH)),)
+ifeq ($(findstring neon,$(CONFIG_CPU_TYPE)),)
+export NSS_DISABLE_ARM32_NEON
+endif
+endif
 
-export CROSS_COMPILE=1
-export BUILD_OPT=1
 export NATIVE_CC=$(HOSTCC)
 export NATIVE_FLAGS=$(HOST_CFLAGS)
-export NSDISTMODE=copy
 export NSS_ENABLE_WERROR=0
-export NSS_DISABLE_GTESTS=1
-export NSS_USE_SYSTEM_SQLITE=1
-export OS_TARGET=Linux
-export OS_ARCH=Linux
-export OS_TEST=$(ARCH)
-export CPU_ARCH=$(ARCH)
-export fpic=$(FPIC)
-export NSPR_INCLUDE_DIR=$(STAGING_DIR)/usr/include/nspr
-export SEED_ONLY_DEV_URANDOM=1
-export OS_REL_CFLAGS=$(TARGET_CFLAGS)
-export NS_USE_GCC=1
-export FREEBL_NO_DEPEND=1
-#size optimisation, seems to not impact speed
-export NSS_DISABLE_DBM=1
-export NSS_PKIX_NO_LDAP=1
-export ALLOW_OPT_CODE_SIZE=1
-export OPT_CODE_SIZE=1
+
+MAKE_FLAGS += \
+	CROSS_COMPILE=1 \
+	BUILD_OPT=1 \
+	NSDISTMODE=copy \
+	NSS_DISABLE_GTESTS=1 \
+	NSS_USE_SYSTEM_SQLITE=1 \
+	OS_ARCH=Linux \
+	OS_TEST=$(ARCH) \
+	fpic="$(FPIC)" \
+	NSPR_INCLUDE_DIR=$(STAGING_DIR)/usr/include/nspr \
+	SEED_ONLY_DEV_URANDOM=1 \
+	NS_USE_GCC=1 \
+	FREEBL_NO_DEPEND=1 \
+	NSS_PKIX_NO_LDAP=1 \
+	ALLOW_OPT_CODE_SIZE=1 \
+	OPT_CODE_SIZE=1 \
+	OS_REL_CFLAGS="$(TARGET_CFLAGS)"
 
 #native compile nsinstall
-define Build/Prepare
-	$(call Build/Prepare/Default)
-	USE_NATIVE=1 OS_REL_CFLAGS="$(HOST_CFLAGS)" LDFLAGS="$(HOST_LDFLAGS)" CC="$(HOSTCC)" \
+define Build/Configure
+	USE_NATIVE=1 OS_REL_CFLAGS="$(HOST_CFLAGS)" LDFLAGS="$(HOST_LDFLAGS)" \
+	CC="$(HOSTCC)" CPU_ARCH="$(HOST_ARCH)" \
 	    $(MAKE) -C $(PKG_BUILD_DIR)/nss/coreconf/nsinstall
+endef
+
+define Build/Compile
+	$(call Build/Compile/Default,nss_build_all)
 endef
 
 define Package/libnss/conffiles
@@ -101,6 +107,8 @@ endef
 
 define Build/InstallDev
 	$(INSTALL_DIR) \
+	 $(2)/bin \
+	 $(1)/usr/bin \
 	 $(1)/usr/include/nss \
 	 $(1)/usr/lib \
 	 $(1)/usr/lib/pkgconfig
@@ -112,6 +120,12 @@ define Build/InstallDev
 	  $(1)/usr/lib/
 	$(CP) $(PKG_BUILD_DIR)/nss/config/*.pc \
 	  $(1)/usr/lib/pkgconfig/
+	$(CP) $(PKG_BUILD_DIR)/nss/config/nss-config \
+	  $(1)/usr/bin/
+	$(SED) 's,^\(prefix\)=.*,\1=$(STAGING_DIR)/usr,g' \
+	  $(1)/usr/bin/nss-config
+	$(LN) ../../usr/bin/nss-config \
+	  $(2)/bin/
 endef
 
 define Package/nss-utils/install

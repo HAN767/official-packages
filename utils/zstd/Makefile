@@ -1,42 +1,40 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=zstd
-PKG_VERSION:=1.4.4
-PKG_RELEASE:=2
+PKG_VERSION:=1.5.2
+PKG_RELEASE:=$(AUTORELEASE)
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
-PKG_SOURCE_URL:=https://codeload.github.com/facebook/zstd/tar.gz/v$(PKG_VERSION)?
-PKG_HASH:=a364f5162c7d1a455cc915e8e3cf5f4bd8b75d09bc0f53965b0c9ca1383c52c8
+PKG_SOURCE_URL:=https://github.com/facebook/zstd/releases/download/v$(PKG_VERSION)
+PKG_HASH:=7c42d56fac126929a6a85dbc73ff1db2411d04f104fae9bdea51305663a83fd0
 
-PKG_MAINTAINER:=Amol Bhave <ambhave@fb.com>
+PKG_MAINTAINER:=
 PKG_LICENSE:=GPL-2.0-or-later
 PKG_LICENSE_FILES:=COPYING
 
-PKG_BUILD_PARALLEL:=1
-HOST_BUILD_PARALLEL:=1
-CMAKE_SOURCE_SUBDIR:=build/cmake
-CMAKE_INSTALL:=1
+PKG_INSTALL:=1
 
 include $(INCLUDE_DIR)/package.mk
-include $(INCLUDE_DIR)/host-build.mk
-include $(INCLUDE_DIR)/cmake.mk
+include $(INCLUDE_DIR)/meson.mk
+
+MESON_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)-$(PKG_VERSION)/build/meson/openwrt-build
 
 define Package/zstd/Default
-	SUBMENU:=Compression
-	URL:=https://github.com/facebook/zstd
+  SUBMENU:=Compression
+  URL:=https://github.com/facebook/zstd
 endef
 
 define Package/libzstd
 $(call Package/zstd/Default)
-	SECTION:=libs
-	CATEGORY:=Libraries
-	TITLE:=zstd library.
-	MENU:=1
+  SECTION:=libs
+  CATEGORY:=Libraries
+  TITLE:=zstd library.
+  MENU:=1
 endef
 
 define Package/libzstd/description
-	Zstandard - Fast real-time compression algorithm.
-	This package provides libzstd library.
+  Zstandard - Fast real-time compression algorithm.
+  This package provides libzstd library.
 endef
 
 define Package/libzstd/config
@@ -50,40 +48,53 @@ endef
 
 define Package/zstd
 $(call Package/zstd/Default)
-	SECTION:=utils
-	CATEGORY:=Utilities
-	DEPENDS:=+libzstd
-	TITLE:=Fast real-time compression algorithm.
+  SECTION:=utils
+  CATEGORY:=Utilities
+  DEPENDS:=+libzstd
+  TITLE:=Fast real-time compression algorithm.
 endef
 
 define Package/zstd/description
-	Zstandard - Fast real-time compression algorithm.
-	This package provides the zstd binaries.
+  Zstandard - Fast real-time compression algorithm.
+  This package provides the zstd binaries.
 endef
 
 ifeq ($(CONFIG_ZSTD_OPTIMIZE_O3),y)
 TARGET_CFLAGS:= $(filter-out -O%,$(TARGET_CFLAGS)) -O3
 endif
 
-TARGET_CFLAGS += -flto
-TARGET_LDFLAGS += -Wl,--as-needed
+MESON_ARGS += \
+	-Dlegacy_level=7 \
+	-Ddebug_level=0 \
+	-Dbacktrace=false \
+	-Dstatic_runtime=false \
+	-Dbin_programs=true \
+	-Dbin_tests=false \
+	-Dbin_contrib=false \
+	-Dmulti_thread=enabled \
+	-Dzlib=disabled \
+	-Dlzma=disabled \
+	-Dlz4=disabled \
+	-Db_lto=true
 
 define Build/InstallDev
-	$(call Build/InstallDev/cmake,$(1))
-	$(SED) 's,/usr/include,$$$${prefix}/include,g' $(1)/usr/lib/pkgconfig/libzstd.pc
-	$(SED) 's,/usr/lib,$$$${prefix}/lib,g' $(1)/usr/lib/pkgconfig/libzstd.pc
+	$(INSTALL_DIR) $(1)/usr/include
+	$(CP) $(PKG_INSTALL_DIR)/usr/include/*.h $(1)/usr/include
+	$(INSTALL_DIR) $(1)/usr/lib
+	$(CP) $(PKG_INSTALL_DIR)/usr/lib/libzstd.so* $(1)/usr/lib
+	$(INSTALL_DIR) $(1)/usr/lib/pkgconfig
+	$(CP) $(PKG_INSTALL_DIR)/usr/lib/pkgconfig/libzstd.pc $(1)/usr/lib/pkgconfig
 endef
 
 define Package/libzstd/install
 	$(INSTALL_DIR) $(1)/usr/lib
-	$(CP) $(PKG_INSTALL_DIR)/usr/lib/libzstd.so* $(1)/usr/lib/
+	$(CP) $(PKG_INSTALL_DIR)/usr/lib/libzstd.so* $(1)/usr/lib
 endef
 
 define Package/zstd/install
 	$(INSTALL_DIR) $(1)/usr/bin
-	$(CP) $(PKG_INSTALL_DIR)/usr/bin/{unzstd,zstd,zstdcat,zstdmt} $(1)/usr/bin/
+	$(CP) $(PKG_INSTALL_DIR)/usr/bin/{unzstd,zstd,zstdcat,zstdgrep,zstdless,zstdmt} $(1)/usr/bin
 endef
 
 $(eval $(call BuildPackage,libzstd))
 $(eval $(call BuildPackage,zstd))
-$(eval $(call HostBuild))

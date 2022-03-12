@@ -1,11 +1,11 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=sqlparse
-PKG_VERSION:=0.3.0
-PKG_RELEASE:=1
+PKG_VERSION:=0.4.2
+PKG_RELEASE:=$(AUTORELEASE)
 
 PYPI_NAME:=sqlparse
-PKG_HASH:=7c3dca29c022744e95b547e867cee89f4fce4373f3549ccd8797d8eb52cdb873
+PKG_HASH:=0c00730c74263a94e5a9919ade150dfc3b19c574389985446148402998287dae
 
 PKG_MAINTAINER:=Peter Stadler <peter.stadler@student.uibk.ac.at>
 PKG_LICENSE:=BSD-3-Clause
@@ -22,7 +22,6 @@ define Package/python3-sqlparse
   TITLE:=Non-validating SQL parser module.
   URL:=https://github.com/andialbrecht/sqlparse
   DEPENDS:=+python3-light
-  VARIANT:=python3
 endef
 
 define Package/python3-sqlparse/description

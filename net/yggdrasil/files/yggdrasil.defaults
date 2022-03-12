@@ -11,11 +11,10 @@ first_boot_genConfig()
 
   json_load "$boardcfg"
   json_get_var kernel     kernel
-  json_get_var hostname   hostname
   json_get_var system     system
   json_get_var model      model
   json_get_var board_name board_name
-  nodeinfo='{"kernel": "'$kernel'", "hostname":"'$hostname'", "system": "'$system'", "model": "'$model'", "board_name": "'$board_name'"}'
+  nodeinfo='{"kernel": "'$kernel'", "hostname":"'OpenWrt'", "system": "'$system'", "model": "'$model'", "board_name": "'$board_name'"}'
 
   uci set yggdrasil.yggdrasil.IfName="ygg0"
   uci set yggdrasil.yggdrasil.NodeInfo="$nodeinfo"
@@ -35,7 +34,7 @@ elif [ ! -e ${yggConfig} ]; then
   # create the network interface
   uci -q batch <<-EOF >/dev/null
     set network.yggdrasil=interface
-    set network.yggdrasil.ifname=ygg0
+    set network.yggdrasil.device=ygg0
     set network.yggdrasil.proto=none
 EOF
 
@@ -87,6 +86,17 @@ EOF
     set firewall.@rule[-1].src=yggdrasil
     set firewall.@rule[-1].proto=tcp
     set firewall.@rule[-1].dest_port=80
+    set firewall.@rule[-1].target=ACCEPT
+EOF
+
+  # allow LuCI access with SSL from yggdrasil zone, needs to be explicitly enabled
+  uci -q batch <<-EOF >/dev/null
+    add firewall rule
+    set firewall.@rule[-1].enabled=0
+    set firewall.@rule[-1].name='Allow-HTTPS-yggdrasil'
+    set firewall.@rule[-1].src=yggdrasil
+    set firewall.@rule[-1].proto=tcp
+    set firewall.@rule[-1].dest_port=443
     set firewall.@rule[-1].target=ACCEPT
 EOF
 
